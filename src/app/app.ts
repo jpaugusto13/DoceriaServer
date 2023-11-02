@@ -22,7 +22,7 @@ app.use(cors({
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
-  res.send("Status: ON\nRota: "+SignErpKitController+"Adicionada");
+  res.send("Status: ON\nRota: ");
 });
 
 app.use("/client", registerRouter);
