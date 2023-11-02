@@ -10,7 +10,6 @@ import retornarProdutosRouter from "../router/Client/retornarProdutosRouter";
 import loginErpRouter from "../router/ERP/LoginErpRouter";
 import SignErpProductRouter from "../router/ERP/SignErpProductRouter";
 import SignErpKitRouter from "../router/ERP/SignErpKitRouter";
-import SignErpKitController from "../controller/ERP/SignErpKitController";
 
 const app = express();
 
