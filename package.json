@@ -6,6 +6,9 @@
   "directories": {
     "public": "public"
   },
+  "engines": {
+    "node": "18"
+  },
   "scripts": {
     "dev": "nodemon ./src/index.ts",
     "build": "tsup src",
