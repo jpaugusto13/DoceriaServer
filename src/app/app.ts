@@ -9,7 +9,7 @@ import retornarProdutosRouter from "../router/Client/retornarProdutosRouter";
 // Rotas ERP
 import loginErpRouter from "../router/ERP/LoginErpRouter";
 import SignErpProductRouter from "../router/ERP/SignErpProductRouter";
-// import SignErpKitRouter from "../router/ERP/SignErpKitRouter";
+import SignErpKitRouter from "../router/ERP/SignErpKitRouter";
 
 const app = express();
 
@@ -30,6 +30,6 @@ app.use("/client", retornarProdutosRouter);
 
 app.use("/erp", loginErpRouter);
 app.use("/erp", SignErpProductRouter);
-// app.use("/erp", SignErpKitRouter);
+app.use("/erp", SignErpKitRouter);
 
 export { app };
