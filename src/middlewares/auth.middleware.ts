@@ -1,42 +1,69 @@
 import { Request, Response, NextFunction } from "express";
 import dotenv from "dotenv";
-import jwt from "jsonwebtoken";
-import decodedUser from "../types/decodedUser";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import AcessType from "../types/AcessType";
 
 dotenv.config();
-const secretKey = process.env.SIGNATURE_KEY;
+const secretKey: string = process.env.SIGNATURE_KEY ?? "";
 
-function verifyToken(authorization: string): decodedUser | null {
-  const authBody: Array<string> = authorization?.split(" ");
+interface DecodedToken extends JwtPayload, AcessType {}
 
-  if (authBody.length !== 2) return null;
-  const [bearer, token] = authBody;
+class AuthMidleware {
+  private static verifyToken(authorization: string): DecodedToken | null {
+    const authBody: Array<string> = authorization?.split(" ");
 
-  if (bearer !== "Bearer") return null;
+    if (authBody.length !== 2 || !authBody[1]) return null;
+    const [bearer, token] = authBody;
 
-  if (typeof secretKey === "string") {
+    if (bearer !== "Bearer") return null;
+
     try {
-      const decoded = jwt.verify(token, secretKey) as decodedUser;
-      return decoded;
+      return jwt.verify(token, secretKey) as DecodedToken;
     } catch (error) {
       return null;
     }
   }
+  public static async authRoot(req: Request, res: Response, next: NextFunction) {
+    const { authorization } = req.headers;
+    if (!authorization) return res.sendStatus(401);
 
-  return null;
+    const { acesso } = AuthMidleware.verifyToken(authorization) as DecodedToken;
+    if (!acesso) return res.sendStatus(401);
+
+    if (acesso == "root") {
+      next();
+    } else {
+      res.sendStatus(401);
+    }
+  }
+
+  public static async authAdmin(req: Request, res: Response, next: NextFunction) {
+    const { authorization } = req.headers;
+    if (!authorization) return res.sendStatus(401);
+
+    const { acesso } = AuthMidleware.verifyToken(authorization) as DecodedToken;
+    if (!acesso) return res.sendStatus(401);
+
+    if (acesso == "admin" || acesso == "root") {
+      next();
+    } else {
+      res.sendStatus(401);
+    }
+  }
+
+  public static async authPadrao(req: Request, res: Response, next: NextFunction) {
+    const { authorization } = req.headers;
+    if (!authorization) return res.sendStatus(401);
+
+    const { acesso } = AuthMidleware.verifyToken(authorization) as DecodedToken;
+    if (!acesso) return res.sendStatus(401);
+
+    if (acesso == "admin" || acesso == "root" || acesso == "padrao") {
+      next();
+    } else {
+      res.sendStatus(401);
+    }
+  }
 }
 
-function authMiddlewareAdmin(req: Request, res: Response, next: NextFunction) {
-  const { authorization } = req.headers;
-  if (!authorization) return res.send(401);
-
-  const decodedUserResult = verifyToken(authorization);
-
-  if (!decodedUserResult) return res.send(401);
-
-  const { userType } = decodedUserResult;
-  if (userType === "admin") next();
-  return res.send(401);
-}
-
-export { authMiddlewareAdmin };
+export default AuthMidleware;

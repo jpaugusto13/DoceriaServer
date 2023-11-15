@@ -1,35 +1,41 @@
 import express from "express";
 import cors from "cors";
+import bodyParser from "body-parser";
 
-// Rotas Client
-import registerRouter from "../router/Client/registerClientRouter";
-import loginClientRouter from "../router/Client/loginClientRouter";
-import retornarProdutosRouter from "../router/Client/retornarProdutosRouter";
+import GetCategoryRouter from "../routes/category.router";
 
 // Rotas ERP
-import loginErpRouter from "../router/ERP/LoginErpRouter";
-import SignErpProductRouter from "../router/ERP/SignErpProductRouter";
-import SignErpKitRouter from "../router/ERP/SignErpKitRouter";
+import productRouter from "../routes/product.router";
+import categoryRouter from "../routes/category.router";
+import schedulingRouter from "../routes/scheduling.router";
+import saleRouter from "../routes/sale.router";
+
+import GetErpQRcodeRouter from "../routes/GetQRcodeRouter";
+import iniciarChatBotRouter from "../routes/ChatBotRouter";
+import usersRouter from "../routes/users.router";
 
 const app = express();
 
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.json());
+
 app.use(cors({
-  origin: "*"
+  origin: ["http://localhost:5173"],
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
+  optionsSuccessStatus: 204,
 }));
 
-app.use(express.urlencoded({ extended: true }));
+app.use("/users", usersRouter);
+app.use("/category", GetCategoryRouter);
 
-app.get("/", (req, res) => {
-  res.send("Status: ON\nRota: ");
-});
+app.use("/product", productRouter);
+app.use("/erp", categoryRouter);
+app.use("/erp", schedulingRouter);
+app.use("/sales", saleRouter);
 
-app.use("/client", registerRouter);
-app.use("/client", loginClientRouter);
-app.use("/client", retornarProdutosRouter);
-
-app.use("/erp", loginErpRouter);
-app.use("/erp", SignErpProductRouter);
-app.use("/erp", SignErpKitRouter);
+app.use("/erp", GetErpQRcodeRouter);
+app.use("/erp", iniciarChatBotRouter);
 
 export { app };
