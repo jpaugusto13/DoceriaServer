@@ -6,6 +6,8 @@ type ProdutType = {
   descricao: string;
   imagem: string;
   quantidade: number;
+  doce_raro: number;
+  categoria: string;
 }
 
 export default ProdutType;

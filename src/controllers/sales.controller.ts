@@ -2,20 +2,66 @@ import { Request, Response } from "express";
 import database from "../database/database";
 import { QueryConfig } from "pg";
 import ProdutType from "../types/ProductType";
-
-type SalesType = {
-  id: number;
-  forma_pagamento: string;
-  valor: number;
-  data_venda: Date;
-  hora_venda: string;
-  id_produto_vendido: number;
-  status_venda: "concluida" | "cancelada" | "analise";
-}
-
+import SaleType from "../types/SaleType";
 class SalesController {
+  public static async searchSale(forma_pagamento : string, data_venda : Date, status_venda :string, hora_venda : string, valor : number , id: number , id_produto_vendido : number) {
+    let mudancas: Array<string> = [];
+    let values: Array<string | number | Date> = [];
+    
+    if(forma_pagamento) {
+      mudancas.push("forma_pagamento");
+      values.push(forma_pagamento);
+    }
+
+    if(data_venda) {
+      mudancas.push("data_venda");
+      values.push(data_venda);
+    }
+
+    if(status_venda) {
+      mudancas.push("status_venda");
+      values.push(status_venda);
+    }
+
+    if(hora_venda) {
+      mudancas.push("hora_venda");
+      values.push(hora_venda);
+    }
+    
+    if(valor) {
+      mudancas.push("valor");
+      values.push(valor);
+    }
+
+    if(id) {
+      mudancas.push("id");
+      values.push(id);
+    }
+
+    if(id_produto_vendido) {
+      mudancas.push("id_produto_vendido");
+      values.push(id_produto_vendido);
+    }
+    
+    let query = {} as QueryConfig;
+    
+    if(mudancas.length > 0) {
+      query = {
+        text: `SELECT * FROM vendas WHERE ${mudancas.map((alteracao, index) => alteracao + " = $" + Number(index + 1)).join(" AND ")}`,
+        values: [...values]
+      };
+    } else {
+      query = {
+        text: 'SELECT * FROM vendas',
+      };
+    }
+
+    const sales = await database.query(query).then(response => response);
+    return sales.rows;
+  }
+
   public static async registerSale(req: Request, res: Response) {
-    const { forma_pagamento, valor, id_produto_vendido }: SalesType = req.body;
+    const { forma_pagamento, valor, id_produto_vendido }: SaleType = req.body;
     let query = {
       text: 'SELECT * FROM produtos WHERE id = $1',
       values: [id_produto_vendido],
@@ -43,7 +89,6 @@ class SalesController {
       values: [forma_pagamento, valor, date_sale, time_sale, id_produto_vendido, "concluída"]
     };
     
-    
     await database.query(query).then(async () => {
       query = {
         text: 'UPDATE produtos SET quantidade = $1 WHERE id = $2',
@@ -54,7 +99,11 @@ class SalesController {
   }
 
   public static async getSale(req: Request, res: Response) {
- 
+    const { forma_pagamento, data_venda, status_venda, hora_venda, valor , id , id_produto_vendido } : SaleType = req.body;
+    let sales = await SalesController.searchSale(forma_pagamento, data_venda, status_venda, hora_venda, valor , id , id_produto_vendido);
+  
+    
+    return res.status(200).json({ vendas: sales });	
   }
 }
 

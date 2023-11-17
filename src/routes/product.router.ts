@@ -6,6 +6,8 @@ import ProductController from "../controllers/product.controller";
 const productRouter = Router();
 
 productRouter.post("/register", AuthMidleware.authAdmin, ProductController.registerProduct);
-productRouter.get("/products", AuthMidleware.authPadrao, ProductController.getProduct);
+productRouter.delete("/delete", AuthMidleware.authAdmin, ProductController.deleteProduct);
+productRouter.put("/update", AuthMidleware.authAdmin,ProductController.updateProduct);
+productRouter.get("/get", ProductController.getProduct);
 
 export default productRouter;

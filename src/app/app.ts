@@ -32,7 +32,7 @@ app.use("/category", GetCategoryRouter);
 
 app.use("/product", productRouter);
 app.use("/erp", categoryRouter);
-app.use("/erp", schedulingRouter);
+app.use("/scheduling", schedulingRouter);
 app.use("/sales", saleRouter);
 
 app.use("/erp", GetErpQRcodeRouter);

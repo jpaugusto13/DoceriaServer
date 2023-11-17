@@ -4,56 +4,61 @@ import { Request, Response } from "express";
 // Importações de Ambiente
 import database from "../database/database";
 import { QueryConfig } from "pg";
-
-type categoryType = {
-  categoria: string;
-  id: number;
-}
+import CategoryType from "../types/CategoryType";
 
 class CategoryController {
-  public static async registerCatogory(req: Request, res: Response) {
-    const { categoria: novaCategoria } : categoryType = req.body; 
-
-    try {
-      const query = {
+  // Método para criar categoria
+  public static async registerCategory(req: Request, res: Response) {
+    const { categoria } : CategoryType = req.body; 
+      let query = {
         text: `SELECT * FROM categorias WHERE categoria = $1`,
-        values: [ novaCategoria.toLowerCase() ],
-      };
+        values: [ categoria.toLowerCase() ],
+      } as QueryConfig;
 
-      const response = await database.query(query);
-      if (response.rows.length !== 0) {
-        return res.status(409).json({ message: "Categoria já existe" });
-      }
+      await database.query(query)
+      .then(response => response.rows.length !== 0 ? res.status(409).json({ message: "Categoria já existe" }) : {})
+      .catch(() => res.sendStatus(500));
 
-      const insertCategoriaQuery = {
-        text: "INSERT INTO categorias (categoria) VALUES ($1)",
-        values: [ novaCategoria.toLowerCase() ],
-      };
-
-      await database.query(insertCategoriaQuery);
-      
-      return res.status(201).json({ message: "Categoria criada com sucesso!" });
-    } catch (error) {
-      return res.status(500).json({ message: "Erro ao processar a requisição: " + error });
-    }
-  }
-  
-  public static async getCategory(req: Request, res: Response) {
-    try {
-      let query = {} as QueryConfig;
-  
       query = {
-        text: `SELECT * FROM categorias`,
+        text: "INSERT INTO categorias (categoria) VALUES ($1)",
+        values: [ categoria.toLowerCase() ],
       };
-  
-      const categorias = await database.query(query);
-      
-      return res.status(200).json({ categorias: categorias.rows });
-    } catch (error) {
-      console.error("Erro ao retornar categorias:", error);
-      return res.status(500).json({ error: "Erro ao retornar categorias" });
-    }
+
+      await database.query(query).then(() => res.status(201).json({ message: "Categoria criada com sucesso!" })).catch(() => res.sendStatus(500));
   }
+
+  // Método para retonar categoria
+  public static async getCategory(req: Request, res: Response) {
+    let query = { 
+      text: `SELECT * FROM categorias`,
+    } as QueryConfig;
+
+    await database.query(query).then(response => res.status(200).json({ categorias: response.rows })).catch(() => res.sendStatus(500));
+  }
+
+  // Método para atualizar categoria
+  public static async updateCategory(req: Request, res: Response) {
+		const { id, categoria } : CategoryType = req.body;
+
+		let query = {
+			text: `UPDATE produtos SET categoria = $1 WHERE id = $2;`,
+			values: [ categoria, id],
+		} as QueryConfig;
+		
+		await database.query(query).then(() => res.status(200).json({message: "Categoria alterada com sucesso!"})).catch(() => res.sendStatus(500));
+	}
+
+  // Método para deletar categoria
+	public static async deleteCategory(req: Request, res: Response) {
+		const { id } : CategoryType = req.body;
+
+		let query = {
+			text: 'DELETE FROM categorias WHERE id = $1',
+			values: [ id ],
+		} as QueryConfig;
+			
+    await database.query(query).then(() => res.status(200).json({})).catch(() => res.status(500).json({}));
+	}
 }
 
 export default CategoryController;
