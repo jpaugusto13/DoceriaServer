@@ -8,6 +8,6 @@ const productRouter = Router();
 productRouter.post("/register", AuthMidleware.authAdmin, ProductController.registerProduct);
 productRouter.delete("/delete", AuthMidleware.authAdmin, ProductController.deleteProduct);
 productRouter.put("/update", AuthMidleware.authAdmin,ProductController.updateProduct);
-productRouter.get("/get", ProductController.getProduct);
+productRouter.post("/get", ProductController.getProduct);
 
 export default productRouter;
