@@ -14,6 +14,8 @@ class UserControler {
   public static async login(req: Request, res: Response) {
     const { email, senha } : UserType = req.body;
 
+    if(!email) return res.status(400).json({ erro: `Email não encontrado ` });
+
     let query = {
       text: `SELECT * FROM usuarios WHERE email = $1`,
       values: [email],
@@ -30,7 +32,7 @@ class UserControler {
       return res.status(200).json({ token: acessToken });
     }
 
-    return res.status(401).json({});
+    return res.status(401).json({error: "Senha incorreta!"});
   }
 
   public static async register(req: Request, res: Response) {

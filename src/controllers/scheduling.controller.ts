@@ -28,8 +28,8 @@ class SchedulingController {
       values: [...values]
     } as QueryConfig;
 
-    const schedulings = await database.query(query).then(response => response);
-    return schedulings.rows;
+    const schedulings = await database.query(query).then(response => response.rows);
+    return schedulings;
   }
 
   public static async createScheduling(req: Request, res: Response) {

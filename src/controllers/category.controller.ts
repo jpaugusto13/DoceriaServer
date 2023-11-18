@@ -7,6 +7,7 @@ import { QueryConfig } from "pg";
 import CategoryType from "../types/CategoryType";
 
 class CategoryController {
+
   // Método para criar categoria
   public static async registerCategory(req: Request, res: Response) {
     const { categoria } : CategoryType = req.body; 
@@ -27,13 +28,35 @@ class CategoryController {
       await database.query(query).then(() => res.status(201).json({ message: "Categoria criada com sucesso!" })).catch(() => res.sendStatus(500));
   }
 
-  // Método para retonar categoria
+  // Método para retornar categoria
   public static async getCategory(req: Request, res: Response) {
-    let query = { 
-      text: `SELECT * FROM categorias`,
-    } as QueryConfig;
+    
+    const filtroRequest: CategoryType = req.body;
+		
+		const filtros: string[] = [];
+		const values: (string | number)[] = [];
 
-    await database.query(query).then(response => res.status(200).json({ categorias: response.rows })).catch(() => res.sendStatus(500));
+		let query = {} as QueryConfig;
+
+		for (const [field, value] of Object.entries(filtroRequest)) {
+			if (value !== undefined) {
+				filtros.push(field);
+				values.push(value);
+			}
+		}
+
+		query = {
+			text: "SELECT * FROM categorias",
+		} as QueryConfig;
+		
+		if(filtros.length > 0) {
+      query = {
+        text: `SELECT * FROM categorias WHERE ${filtros.map((alteracao, index) => alteracao + " = $" + Number(index + 1)).join(" AND ")}`,
+        values: [...values]
+    	};
+		}
+
+		await database.query(query).then(response => res.status(200).json({ categorias: response.rows })).catch(() => res.sendStatus(500));
   }
 
   // Método para atualizar categoria

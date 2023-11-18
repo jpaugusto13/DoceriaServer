@@ -12,7 +12,7 @@ import saleRouter from "../routes/sale.router";
 
 import GetErpQRcodeRouter from "../routes/GetQRcodeRouter";
 import iniciarChatBotRouter from "../routes/ChatBotRouter";
-import usersRouter from "../routes/users.router";
+import usersRouter from "../routes/user.router";
 
 const app = express();
 
@@ -27,13 +27,13 @@ app.use(cors({
   optionsSuccessStatus: 204,
 }));
 
-app.use("/users", usersRouter);
+app.use("/user", usersRouter);
 app.use("/category", GetCategoryRouter);
 
 app.use("/product", productRouter);
 app.use("/erp", categoryRouter);
 app.use("/scheduling", schedulingRouter);
-app.use("/sales", saleRouter);
+app.use("/sale", saleRouter);
 
 app.use("/erp", GetErpQRcodeRouter);
 app.use("/erp", iniciarChatBotRouter);
