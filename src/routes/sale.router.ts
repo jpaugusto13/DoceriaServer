@@ -5,6 +5,6 @@ import SalesController from "../controllers/sales.controller";
 
 const saleRouter = Router();
 saleRouter.post("/register", SalesController.registerSale);
-saleRouter.get("/get", SalesController.getSale);
+saleRouter.post("/get", SalesController.getSale);
 
 export default saleRouter;
