@@ -1,10 +1,10 @@
 import { Router } from "express";
 import AuthMidleware from "../middlewares/auth.middleware";
 
-import SalesController from "../controllers/sales.controller";
+import SalesController from "../controllers/sale.controller";
 
 const saleRouter = Router();
 saleRouter.post("/register", SalesController.registerSale);
-saleRouter.post("/get", SalesController.getSale);
+saleRouter.get("/get", SalesController.getSale);
 
 export default saleRouter;

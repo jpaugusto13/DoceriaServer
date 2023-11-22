@@ -1,10 +1,14 @@
+import PaymentType from "./PaymentType";
+import ProdutType from "./ProductType";
+
 type SaleType = {
   id: number;
-  forma_pagamento: string;
+  pagamento: PaymentType[];
   valor: number;
   data_venda: Date;
   hora_venda: string;
-  id_produto_vendido: number;
+  produtos: ProdutType[];
+  observacao: string;
   status_venda: "concluida" | "cancelada" | "analise";
 }
 
