@@ -1,7 +1,7 @@
 import { Request, Response, response } from "express";
 
 import database from "../database/database";
-import { Query, QueryConfig } from "pg";
+import { QueryConfig } from "pg";
 import ProdutType from "../types/ProductType";
 
 class ProdutoController {
@@ -10,14 +10,14 @@ class ProdutoController {
 
 		let query = {
 			text: "INSERT INTO produtos (nome, preco, desconto, descricao, imagem, quantidade, doce_raro, categoria) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
-			values: [nome, preco, desconto, descricao, imagem, 0, doce_raro, categoria]
+			values: [nome, preco, desconto, "", imagem, 0, 0, "sobremesa"]
 		} as QueryConfig;
 
 		await database.query(query).then(() => res.status(201).json({ message: "Produto criado com sucesso!" })).catch(() => res.sendStatus(500));
 	}
 
 	public static async getProduct(req: Request, res: Response) {
-		const filtroRequest: ProdutType = req.body;
+		const filtroRequest = req.query;
 		
 		const filtros: string[] = [];
 		const values: (string | number)[] = [];
@@ -26,10 +26,12 @@ class ProdutoController {
 
 		for (const [field, value] of Object.entries(filtroRequest)) {
 			if (value !== undefined) {
+				const typedValue: string | number = typeof value === 'string' ? value : Number(value);
+
 				filtros.push(field);
-				values.push(value);
+				values.push(typedValue);
 			}
-		}
+		}	
 
 		query = {
 			text: "SELECT * FROM produtos",
@@ -42,7 +44,7 @@ class ProdutoController {
     	};
 		}
 
-		await database.query(query).then(response => res.status(200).json({ produtos: response.rows })).catch(() => res.sendStatus(500));		
+		await database.query(query).then(response => res.status(200).json({ response: response.rows })).catch(() => res.sendStatus(500));		
 	}
 
 	public static async updateProduct(req: Request, res: Response) {

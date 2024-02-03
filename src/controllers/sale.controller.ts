@@ -8,6 +8,7 @@ import SaleType from "../types/SaleType";
 class SalesController {
   public static async registerSale(req: Request, res: Response) {
     const { pagamento, produtos, observacao }: SaleType = req.body;
+
 		let valorPagamento: number = 0;
 		let valorTotal: number = 0;
     
@@ -32,11 +33,11 @@ class SalesController {
 
 				if(!produto) return res.status(404).json({error: "O produto não foi encontrado"});
         if (produto.quantidade < 1) {
-            return res.status(400).json({ error: "O produto não está em estoque" });
+					return res.status(400).json({ error: "O produto não está em estoque" });
         }
 				
-				valorTotal += produto.preco;
-				
+				valorTotal += Number(produto.preco);
+	
 				const objProduct = {
 					id: produto.id,
 					nome: produto.nome,
@@ -46,53 +47,54 @@ class SalesController {
 
         itens_venda.push(objProduct);
     };
-
+		
+		console.log(itens_venda, pagamento);
+		const pagamentoJSON = JSON.stringify(pagamento);
+		const itens_vendaJSON = JSON.stringify(itens_venda);
+		
     query = {
-			text: "INSERT INTO vendas (pagamento, itens_venda, status_venda, observacao) VALUES ($1, $2, $3, $4)",
-			values: [ pagamento, itens_venda, "concluída", observacao]
-    };
+			text: "INSERT INTO vendas (pagamento, itens_venda, status_venda, observacao_venda, vendedor) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+			values: [pagamentoJSON, itens_vendaJSON, "concluída", observacao, ""]
+		};
 
 		if(valorPagamento != valorTotal) return res.status(400).json({error: "bad request"}); 
 
-    await database.query(query).then(() => res.status(201).json({message: "Venda realizada com sucesso!"})).catch((e) => res.status(500).json({ error: e }));
-}
+    await database.query(query).then(() => res.status(201).json({message: "Venda realizada com sucesso!"})).catch((e) => res.status(500).json({ error: "ACONTECEU UM ERRO: "+e }));
+	}
 
   public static async getSale(req: Request, res: Response) {
-    const a = req.params;
+    const filtroRequest = req.query;
 
-		console.log(a);
+		const filtros: string[] = [];
+		const values: (string | number)[] = [];
+
+		let query = {} as QueryConfig;
+
+		for (const [field, value] of Object.entries(filtroRequest)) {
+			if (value !== undefined) {
+				const typedValue: string | number = typeof value === 'string' ? value : Number(value);
+
+				filtros.push(field);
+				values.push(typedValue);
+			}
+		}	
+
+		query = {
+			text: "SELECT * FROM vendas",
+		} as QueryConfig;
 		
-		return res.json({a: a});
+		if(filtros.length > 0) {
+      query = {
+        text: `SELECT * FROM vendas WHERE ${filtros.map((alteracao, index) => alteracao + " = $" + Number(index + 1)).join(" AND ")}`,
+        values: [...values]
+    	};
+		}
 
-		// const filtros: string[] = [];
-		// const values: (string | number)[] = [];
-
-		// let query = {} as QueryConfig;
-
-		// for (const [field, value] of Object.entries(filtroRequest)) {
-		// 	if (value !== undefined) {
-		// 		filtros.push(field);
-		// 		values.push(value);
-		// 	}
-		// }
-
-		// query = {
-		// 	text: "SELECT * FROM vendas",
-		// } as QueryConfig;
-		
-		// if(filtros.length > 0) {
-    //   query = {
-    //     text: `SELECT * FROM vendas WHERE ${filtros.map((alteracao, index) => alteracao + " = $" + Number(index + 1)).join(" AND ")}`,
-    //     values: [...values]
-    // 	};
-		// }
-
-		// await database.query(query).then(response => res.status(200).json({ vendas: response.rows })).catch(() => res.sendStatus(500));
+		await database.query(query).then(response => res.status(200).json({ vendas: response.rows })).catch(() => res.sendStatus(500));
   }
 
   public static async updateSale(req: Request, res: Response) {
 		const produtoRequest = req.params;
-		console.log(produtoRequest);
 		
     if(produtoRequest.status_venda == "cancelada") return res.sendStatus(401);
 
