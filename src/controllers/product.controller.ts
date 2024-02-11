@@ -1,19 +1,26 @@
-import { Request, Response, response } from "express";
+import { Request, Response } from "express";
+import { QueryConfig } from "pg";
 
 import database from "../database/database";
-import { QueryConfig } from "pg";
 import ProdutType from "../types/ProductType";
 
-class ProdutoController {
-	public static async registerProduct(req: Request, res: Response) {
-		const { nome, preco, desconto, descricao, imagem , doce_raro, categoria } : ProdutType = req.body;
-
+class ProductController {
+	public static async createProduct(req: Request, res: Response) {
+		const { name, price, image, description, category } : ProdutType = req.body;
+		
 		let query = {
-			text: "INSERT INTO produtos (nome, preco, desconto, descricao, imagem, quantidade, doce_raro, categoria) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
-			values: [nome, preco, desconto, "", imagem, 0, 0, "sobremesa"]
+			text: "SELECT * FROM categories WHERE name = $1",
+			values: [ category ]
 		} as QueryConfig;
+	
+		await database.query(query).then().catch(() => res.sendStatus(404));
+		
+		query = {
+			text: "INSERT INTO products (name, price, image, stock, description, category, sales_quantity, discount) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+			values: [ name, price, image, 0, description, category, 0, 0 ]
+		};
 
-		await database.query(query).then(() => res.status(201).json({ message: "Produto criado com sucesso!" })).catch(() => res.sendStatus(500));
+		await database.query(query).then(() => res.status(201)).catch(() => res.sendStatus(500));
 	}
 
 	public static async getProduct(req: Request, res: Response) {
@@ -33,13 +40,13 @@ class ProdutoController {
 			}
 		}	
 
-		query = {
-			text: "SELECT * FROM produtos",
-		} as QueryConfig;
-		
-		if(filtros.length > 0) {
+		if(filtros.length == 0) {
+			query = {
+				text: "SELECT * FROM products",
+			} as QueryConfig;
+		} else {	
       query = {
-        text: `SELECT * FROM produtos WHERE ${filtros.map((alteracao, index) => alteracao + " = $" + Number(index + 1)).join(" AND ")}`,
+        text: `SELECT * FROM products WHERE ${filtros.map((alteracao, index) => alteracao + " = $" + Number(index + 1)).join(" AND ")}`,
         values: [...values]
     	};
 		}
@@ -51,7 +58,7 @@ class ProdutoController {
 		const produtoRequest : ProdutType = req.body;
 		
 		let query = {
-      text: `SELECT * FROM produtos WHERE id = $1`,
+      text: `SELECT * FROM products WHERE id = $1`,
       values: [produtoRequest.id],
     } as QueryConfig;
 
@@ -69,7 +76,7 @@ class ProdutoController {
 			}
 
 			const setClause = changes.map((change, index) => `${change} = $${index + 1}`).join(', ');
-			const queryText = `UPDATE produtos SET ${setClause} WHERE id = $${changes.length + 1};`;
+			const queryText = `UPDATE products SET ${setClause} WHERE id = $${changes.length + 1};`;
 
 			query = {
 				text: queryText,
@@ -79,7 +86,7 @@ class ProdutoController {
 			await database.query(query);
 
 			query = {
-				text: `SELECT * FROM produtos WHERE id = $1`,
+				text: `SELECT * FROM products WHERE id = $1`,
 				values: [produtoRequest.id],
 			} as QueryConfig;
 			
@@ -96,7 +103,7 @@ class ProdutoController {
 		const { id } : ProdutType = req.body;
 
 		let query = {
-			text: 'DELETE FROM produtos WHERE id = $1',
+			text: 'DELETE FROM products WHERE id = $1',
 			values: [ id ],
 		} as QueryConfig;
 			
@@ -104,4 +111,4 @@ class ProdutoController {
 	}
 }
 
-export default ProdutoController;
+export default ProductController;

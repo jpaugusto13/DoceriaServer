@@ -1,4 +1,4 @@
-import { Request, Response, response } from "express";
+import { Request, Response } from "express";
 import database from "../database/database";
 import { QueryConfig } from "pg";
 import ProdutType from "../types/ProductType";
@@ -32,17 +32,17 @@ class SalesController {
         const produto: ProdutType = await database.query(query).then(response => response.rows[0]).catch((e) => res.status(500).json({ error: e }));
 
 				if(!produto) return res.status(404).json({error: "O produto não foi encontrado"});
-        if (produto.quantidade < 1) {
+        if (produto.stock < 1) {
 					return res.status(400).json({ error: "O produto não está em estoque" });
         }
 				
-				valorTotal += Number(produto.preco);
+				valorTotal += Number(produto.price);
 	
 				const objProduct = {
 					id: produto.id,
-					nome: produto.nome,
-					preco: produto.preco,
-					categoria: produto.categoria,	
+					name: produto.name,
+					price: produto.price,
+					category: produto.category,	
 				} as ProdutType;
 
         itens_venda.push(objProduct);

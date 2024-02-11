@@ -1,13 +1,13 @@
 type ProdutType = {
   id: number;
-  nome: string;
-  preco: number;
-  desconto: number;
-  descricao: string;
-  imagem: string;
-  quantidade: number;
-  doce_raro: number;
-  categoria: string;
+  name: string;
+  price: number;
+  stock: number;
+  discount: number;
+  description: string;
+  image: string;
+  sales_quantity: number
+  category: string;
 }
 
 export default ProdutType;

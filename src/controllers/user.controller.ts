@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+ import { Request, Response, response } from "express";
 import { QueryConfig } from "pg";
 import database from "../database/database";
 
@@ -6,37 +6,34 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 
 import UserType from "../types/UserType";
+import EmployeeType from "../types/EmployeeType";
 
 dotenv.config();
 const secretKey = process.env.SIGNATURE_KEY;
 
-class UserControler {
-  public static async login(req: Request, res: Response) {
-    const { email, senha } : UserType = req.body;
+class EmployeeController {
+  public static async accessEmployee(req: Request, res: Response) {
+    const { email, password } : UserType = req.body;
 
     if(!email) return res.status(400).json({ erro: `Email não encontrado ` });
 
     let query = {
-      text: `SELECT * FROM usuarios WHERE email = $1`,
-      values: [email],
+      text: `SELECT * FROM employees WHERE email = $1`,
+      values: [ email ],
     } as QueryConfig;
 
-    const result = await database.query(query);
-
-    if (result.rows.length === 0) return res.status(404).json({ erro: `${email} não encontrado ` });
-    
-    const user : UserType = result.rows[0];
-
-    if (senha === user.senha && typeof secretKey == "string") {
-      const acessToken = jwt.sign({ acesso: user.acesso }, secretKey, { expiresIn: "10h" });
+    const employee : EmployeeType = await database.query(query).then(response => response.rows[0] ).catch(() => res.sendStatus(404));
+     
+    if (password === employee.cpf && typeof secretKey == "string") {
+      const acessToken = jwt.sign({ acesso: employee.role }, secretKey, { expiresIn: "10h" });
       return res.status(200).json({ token: acessToken });
     }
 
-    return res.status(401).json({error: "Senha incorreta!"});
+    return res.sendStatus(401);
   }
 
   public static async register(req: Request, res: Response) {
-    const { nome, sobrenome, email, cpf, aniversario, senha, telefone, acesso } : UserType = req.body;
+    const { email } : UserType = req.body;
   
     let query = {
       text: `SELECT * FROM usuarios WHERE email = $1`,
@@ -49,11 +46,11 @@ class UserControler {
   
     query = {
       text: "INSERT INTO usuarios (nome, sobrenome, email, cpf, aniversario, senha, telefone, acesso) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
-      values: [nome, sobrenome, email, cpf, aniversario, senha, telefone, acesso],
+      values: [],
     };
   
     await database.query(query).then(() => res.status(201).json()).catch(() => res.status(500).json({}));
   }
 }
 
-export default UserControler;
+export default EmployeeController;

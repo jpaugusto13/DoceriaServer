@@ -1,8 +1,9 @@
-import { Request, Response, response } from "express";
+import { Request, Response } from "express";
 import database from "../database/database";
 import { QueryConfig } from "pg";
 
 import SchedulingType from "../types/SchedulingType";
+
 class SchedulingController {
   public static async searchScheduling(nome_cliente? : string, data_busca?: Date, hora_entrega?: string ) {
     let mudancas: Array<string> = [];

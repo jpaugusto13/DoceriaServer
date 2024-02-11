@@ -7,31 +7,27 @@ import { QueryConfig } from "pg";
 import CategoryType from "../types/CategoryType";
 
 class CategoryController {
+  public static async createCategory(req: Request, res: Response) {
+    const { name } : CategoryType = req.body; 
 
-  // Método para criar categoria
-  public static async registerCategory(req: Request, res: Response) {
-    const { categoria } : CategoryType = req.body; 
-      let query = {
-        text: `SELECT * FROM categorias WHERE categoria = $1`,
-        values: [ categoria.toLowerCase() ],
-      } as QueryConfig;
+		let query = {
+			text: `SELECT * FROM categorias WHERE categoria = $1`,
+			values: [ name ],
+		} as QueryConfig;
 
-      await database.query(query)
-      .then(response => response.rows.length !== 0 ? res.status(409).json({ message: "Categoria já existe" }) : {})
-      .catch(() => res.sendStatus(500));
+		await database.query(query).then(response => response.rows[0]).catch(() => res.sendStatus(404));
 
-      query = {
-        text: "INSERT INTO categorias (categoria) VALUES ($1)",
-        values: [ categoria.toLowerCase() ],
-      };
+		query = {
+			text: "INSERT INTO categorias (categoria) VALUES ($1)",
+			values: [ name ],
+		};
 
-      await database.query(query).then(() => res.status(201).json({ message: "Categoria criada com sucesso!" })).catch(() => res.sendStatus(500));
+		await database.query(query).then(() => res.sendStatus(201)).catch(() => res.sendStatus(500));
   }
 
-  // Método para retornar categoria
   public static async getCategory(req: Request, res: Response) {
     
-    const filtroRequest: CategoryType = req.body;
+    const filtroRequest = req.query;
 		
 		const filtros: string[] = [];
 		const values: (string | number)[] = [];
@@ -40,18 +36,20 @@ class CategoryController {
 
 		for (const [field, value] of Object.entries(filtroRequest)) {
 			if (value !== undefined) {
+				const typedValue: string | number = typeof value === 'string' ? value : Number(value);
+
 				filtros.push(field);
-				values.push(value);
+				values.push(typedValue);
 			}
-		}
+		}	
 
 		query = {
-			text: "SELECT * FROM categorias",
+			text: "SELECT * FROM categories",
 		} as QueryConfig;
 		
 		if(filtros.length > 0) {
       query = {
-        text: `SELECT * FROM categorias WHERE ${filtros.map((alteracao, index) => alteracao + " = $" + Number(index + 1)).join(" AND ")}`,
+        text: `SELECT * FROM categories WHERE ${filtros.map((alteracao, index) => alteracao + " = $" + Number(index + 1)).join(" AND ")}`,
         values: [...values]
     	};
 		}
@@ -59,19 +57,17 @@ class CategoryController {
 		await database.query(query).then(response => res.status(200).json({ categorias: response.rows })).catch(() => res.sendStatus(500));
   }
 
-  // Método para atualizar categoria
   public static async updateCategory(req: Request, res: Response) {
-		const { id, categoria } : CategoryType = req.body;
+		const { id, name } : CategoryType = req.body;
 
 		let query = {
 			text: `UPDATE produtos SET categoria = $1 WHERE id = $2;`,
-			values: [ categoria, id],
+			values: [ name, id],
 		} as QueryConfig;
 		
 		await database.query(query).then(() => res.status(200).json({message: "Categoria alterada com sucesso!"})).catch(() => res.sendStatus(500));
 	}
 
-  // Método para deletar categoria
 	public static async deleteCategory(req: Request, res: Response) {
 		const { id } : CategoryType = req.body;
 

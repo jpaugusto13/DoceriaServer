@@ -1,14 +1,9 @@
-import AcessType from "./AcessType";
+import AcessType from "./AccessType";
 
 interface UserType extends AcessType {
   id: number;
-  nome: string;
-  sobrenome: string;
   email: string;
-  cpf: number;
-  aniversario: Date;
-  senha: string;
-  telefone: number;
+  password: string
 }
 
 export default UserType;
